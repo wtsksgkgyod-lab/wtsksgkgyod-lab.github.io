@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>クレストライン</title>
+  <style>html,body{color:#e7ebef;touch-action:none;background:#101418;height:100%;margin:0;font-family:Hiragino Sans,Noto Sans JP,Yu Gothic UI,sans-serif;overflow:hidden}#view{touch-action:none;width:100%;height:100%;display:block;position:fixed;inset:0}button{touch-action:none;font-family:inherit}#hud{z-index:3;pointer-events:none;padding:calc(8px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));display:none;position:fixed;top:0;left:0;right:0}#hud.show{display:block}.top{flex-wrap:wrap;align-items:flex-end;gap:10px;display:flex}#speed{letter-spacing:-1px;text-shadow:0 1px 2px #000;font-size:40px;font-weight:700;line-height:.9}#speed small{margin-left:4px;font-size:13px;font-weight:600}#gear{text-shadow:0 1px 2px #000;min-width:28px;font-size:34px;font-weight:800}.rpm{background:#00000073;border-radius:6px;flex:1;min-width:90px;height:10px;margin-bottom:8px;overflow:hidden}#rpmbar{background:linear-gradient(90deg,#d7a441,#f2f2f2 70%,#e23b2f);width:0%;height:100%}.times{opacity:.95;text-shadow:0 1px 2px #000;gap:12px;margin-top:4px;font-size:12px;display:flex}.times b{font-variant-numeric:tabular-nums;font-size:14px}#corner{letter-spacing:.04em;text-shadow:0 1px 2px #000;margin-top:2px;font-size:12px}#controls{z-index:4;pointer-events:none;display:none;position:fixed;inset:0}#controls.show{display:block}.pad{pointer-events:auto;color:#fff;background:#080a0c6b;border:0;border-radius:14px;font-size:16px;font-weight:700;position:absolute}#throttle{right:calc(14px + env(safe-area-inset-right));bottom:calc(118px + env(safe-area-inset-bottom));width:112px;height:92px}#brake{right:calc(14px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));background:#5a181280;width:112px;height:92px}#shiftUp{right:calc(136px + env(safe-area-inset-right));bottom:calc(168px + env(safe-area-inset-bottom));width:72px;height:48px}#shiftDown{left:calc(14px + env(safe-area-inset-left));bottom:calc(168px + env(safe-area-inset-bottom));width:72px;height:48px}#resetBtn,#pauseBtn,#autoBtn{pointer-events:auto;top:calc(8px + env(safe-area-inset-top));color:#fff;background:#080a0c80;border:0;border-radius:10px;height:36px;font-weight:700;position:absolute}#resetBtn{left:calc(14px + env(safe-area-inset-left));padding:0 12px}#pauseBtn{left:calc(130px + env(safe-area-inset-left));padding:0 12px}#autoBtn{right:calc(14px + env(safe-area-inset-right));padding:0 12px}#autoBtn.on{color:#1a1408;background:#d7a441}#shiftLabel{right:calc(96px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));text-shadow:0 1px 2px #000;pointer-events:none;font-size:12px;position:absolute}#slider{left:calc(16px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));pointer-events:auto;background:#080a0c66;border-radius:32px;width:64px;height:140px;position:absolute}#slider.hidden{display:none}#sliderThumb{background:#e7ebef;border-radius:14px;height:28px;margin-top:-14px;position:absolute;top:50%;left:8px;right:8px}#slider span{text-align:center;font-size:11px;position:absolute;top:-18px;left:0;right:0}#menu,#pause,#rotate{z-index:6;background:#0a0e12b8;flex-direction:column;justify-content:center;align-items:center;padding:24px;display:flex;position:fixed;inset:0}#pause,#rotate{display:none}#pause.show,#rotate.show{display:flex}h1{letter-spacing:.08em;margin:0 0 4px;font-size:40px}.sub{opacity:.85;margin:0 0 16px}.cards{flex-wrap:wrap;justify-content:center;gap:12px;max-width:760px;display:flex}.card{text-align:left;width:min(320px,86vw);color:inherit;background:#ffffff14;border:2px solid #0000;border-radius:14px;padding:12px 14px}.card.on{border-color:#e09a2b}.card b{font-size:18px;display:block}.card .abs{color:#f0d7a4;margin-top:6px;font-size:13px;display:block}#go{color:#1b1408;background:#e09a2b;border:0;border-radius:18px;min-width:min(420px,88vw);min-height:84px;margin-top:18px;font-size:36px;font-weight:800}footer{bottom:calc(8px + env(safe-area-inset-bottom));text-align:center;opacity:.75;font-size:10px;position:absolute;left:12px;right:12px}#resume{color:#111;background:#e7ebef;border:0;border-radius:12px;min-width:200px;min-height:52px;margin-top:14px;font-size:20px;font-weight:800}#rotate{z-index:8;text-align:center;background:#101418;font-size:22px}</style>
+  
+<script type="module">
+const n=11
+const chunks=[]
+for (let i=0;i<n;i++) {
+  const name='c'+String(i).padStart(2,'0')+'.txt'
+  const r=await fetch('./assets/'+name)
+  if(!r.ok) throw new Error('missing '+name)
+  chunks.push((await r.text()).trim())
+}
+let b64=chunks.join('')
+const bin=Uint8Array.from(atob(b64), c=>c.charCodeAt(0))
+const ds=new DecompressionStream('gzip')
+const stream=new Blob([bin]).stream().pipeThrough(ds)
+const src=await new Response(stream).text()
+await import(URL.createObjectURL(new Blob([src], {type:'text/javascript'})))
+</script>
+</head>
+<body>
+  <canvas id="view"></canvas>
+  <div id="hud">
+    <div class="top">
+      <div id="speed">0<small>km/h</small></div>
+      <div id="gear">1</div>
+      <div class="rpm" aria-label="回転"><div id="rpmbar"></div></div>
+    </div>
+    <div class="times">
+      <span>今回 <b id="cur">--:--.---</b></span>
+      <span>ベスト <b id="best">--:--.---</b></span>
+      <span>前回 <b id="last">--:--.---</b></span>
+      <span>周 <b id="laps">0</b></span>
+    </div>
+    <div id="corner"></div>
+  </div>
+  <div id="controls">
+    <button id="resetBtn" type="button">ピット復帰</button>
+    <button id="pauseBtn" type="button">停止</button>
+    <div id="shiftLabel">マニュアル</div>
+    <button id="autoBtn" type="button" aria-pressed="false">オート</button>
+    <button id="shiftDown" class="pad" type="button">ダウン</button>
+    <button id="shiftUp" class="pad" type="button">アップ</button>
+    <div id="slider" class="hidden"><span>ステア</span><div id="sliderThumb"></div></div>
+    <button id="throttle" class="pad" type="button">アクセル</button>
+    <button id="brake" class="pad" type="button">ブレーキ</button>
+  </div>
+  <div id="menu">
+    <h1>クレストライン</h1>
+    <p class="sub">スパ・フランコルシャン　タイムトライアル</p>
+    <div class="cards" id="cards"></div>
+    <button id="go" type="button">走る</button>
+    <footer id="credit"></footer>
+  </div>
+  <div id="pause">
+    <p class="sub">停止中</p>
+    <div class="cards" id="pauseCards"></div>
+    <button id="resume" type="button">再開</button>
+  </div>
+  <div id="rotate">端末を横向きにしてください</div>
+</body>
+</html>
